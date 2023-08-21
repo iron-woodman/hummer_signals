@@ -27,7 +27,7 @@ class QueueManager():
             for timeframe in timeframes:
                 self._streams.append(f"{symbol.replace('/', '').lower()}@kline_{timeframe}")
 
-        self.send_signal(f'Запуск ПО. Мониторим монеты {len(symbols)} шт. ТФ:{timeframes}', datetime.datetime.now().timestamp())
+        self.send_signal(f'Bot started. Coins count: {len(symbols)}. TF:{timeframes}', datetime.datetime.now().timestamp())
 
         self._twm.start()
         self._log.warning(f"Start listening to {len(self._streams)} streams")
