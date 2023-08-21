@@ -12,11 +12,6 @@ common_params = dict() # основные параметры скрипта
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
-SYMBOLS = ['XRP/BNB', 'ETH/BTC', 'LTC/BTC', 'XRP/BUSD',
-           'XRP/BTC', 'LTC/USDT', 'BNB/BUSD', 'XRP/USDT',
-           'ETH/USDT', 'LTC/BNB', 'LTC/BUSD', 'BNB/USDT',
-           'BTC/USDT', 'BTC/BUSD', 'BNB/BTC', 'ETH/BUSD']
-
 
 class QueueManager():
     _log = logging.getLogger(__name__)
@@ -242,7 +237,7 @@ def main():
     if common_params is None: exit(1)
     futures = load_futures_list()
     print(f'Загружены монеты ({len(futures)} шт.)')
-    manager = QueueManager(symbols=futures, timeframes=['1m', '5m'])
+    manager = QueueManager(symbols=futures, timeframes=['1h', '4h'])
     manager.join()
 
 
