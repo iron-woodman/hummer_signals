@@ -54,8 +54,7 @@ class QueueManager():
             if r.status_code == 200:
                 return
             elif r.status_code != 200:
-                print(f'Ошибка при попытке отправить сигнал ({signal}) в телеграм.')
-                print(f'Осталось {attemts_count} попыток.')
+                print(f'Telegram send signal error ({signal}).')
                 datetime.time.sleep(1)
                 attemts_count -= 1
 
@@ -188,13 +187,13 @@ class QueueManager():
                 if is_candle_closed:
                     signal = self.check_bar_for_signal(symbol, open_, high, low, close, volume, timeframe, candle_time)
                     if signal != '':
-                        print(signal)
+                        # print(signal)
                         self.send_signal(signal, candle_time)
 
 
         except Exception as e:
             print("on_message exception:", e)
-        print(message)
+        # print(message)
 
         if False:
             # in case your internal logic invalidates the items in the queue
@@ -224,7 +223,7 @@ def load_futures_list():
 
 def load_common_params(file):
     if os.path.exists(file) is False:
-        print(f'Файл {file} не существует.')
+        print(f'File {file} not exists.')
         return None
 
     with open(file, 'r') as f:
@@ -237,7 +236,7 @@ def main():
     common_params = load_common_params('common_params.json')
     if common_params is None: exit(1)
     futures = load_futures_list()
-    print(f'Загружены монеты ({len(futures)} шт.)')
+    print(f'Coins is loaded ({len(futures)}.)')
     manager = QueueManager(symbols=futures, timeframes=['1h', '4h'])
     manager.join()
 
