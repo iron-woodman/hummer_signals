@@ -1,3 +1,4 @@
+## -*- coding: utf-8 -*-
 # https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md#subscribe-to-a-stream
 # https://www.youtube.com/watch?v=z2ePTq-KTzQ
 import websocket
