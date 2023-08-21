@@ -109,41 +109,41 @@ class QueueManager():
             open_ = open_ + 0.0001
         proportion = round(abs(high - low) / abs(open_ - close), 2)
         if proportion > 2 and proportion <= 2.5:
-            return "1 к 2"
+            return "1 per 2"
         elif proportion > 2.5 and proportion <= 3:
-            return "1 к 3"
+            return "1 per 3"
         elif proportion > 3 and proportion <= 3.5:
-            return "1 к 3"
+            return "1 per 3"
         elif proportion > 3.5 and proportion <= 4:
-            return "1 к 4"
+            return "1 per 4"
         elif proportion > 4 and proportion <= 4.5:
-            return "1 к 4"
+            return "1 per 4"
         elif proportion > 4.5 and proportion <= 5:
-            return "1 к 5"
+            return "1 per 5"
         elif proportion > 5 and proportion <= 5.5:
-            return "1 к 5"
+            return "1 per 5"
         elif proportion > 5.5 and proportion <= 6:
-            return "1 к 6"
+            return "1 per 6"
         elif proportion > 6 and proportion <= 6.5:
-            return "1 к 6"
+            return "1 per 6"
         elif proportion > 6.5 and proportion <= 7:
-            return "1 к 7"
+            return "1 per 7"
         elif proportion > 7 and proportion <= 7.5:
-            return "1 к 7"
+            return "1 per 7"
         elif proportion > 7.5 and proportion <= 8:
-            return "1 к 8"
+            return "1 per 8"
         elif proportion > 8 and proportion <= 8.5:
-            return "1 к 8"
+            return "1 per 8"
         elif proportion > 8.5 and proportion <= 9:
-            return "1 к 9"
+            return "1 per 9"
         elif proportion > 9 and proportion <= 9.5:
-            return "1 к 9"
+            return "1 per 9"
         elif proportion > 9.5 and proportion <= 10:
-            return "1 к 10"
+            return "1 per 10"
         elif proportion > 10 and proportion <= 10.5:
-            return "1 к 10"
+            return "1 per 10"
         else:
-            return f"1 к {proportion}"
+            return f"1 per {proportion}"
 
     def check_bar_for_signal(self, symbol, open_, high, low, close, volume, timeframe, candle_time):
         signal = ''
