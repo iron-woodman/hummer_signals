@@ -237,11 +237,11 @@ def load_common_params(file):
 
 def main():
     global common_params
-    common_params = load_common_params('common_params_debug.json')
+    common_params = load_common_params('common_params.json')
     if common_params is None: exit(1)
     futures = load_futures_list()
     print(f'Coins is loaded ({len(futures)}.)')
-    manager = QueueManager(symbols=futures, timeframes=['1m', '5m'])
+    manager = QueueManager(symbols=futures, timeframes=['1h', '4h'])
     manager.join()
 
 
