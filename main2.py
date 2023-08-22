@@ -67,18 +67,22 @@ class QueueManager():
         :param close:
         :return:
         '''
-        return (((high - low) > 3 * (open - close)) and
+        return (
+                ((high - low) > 3 * (open - close)) and
                 ((close - low) / (.001 + high - low) > 0.6) and
-                ((open - low) / (.001 + high - low) > 0.6))
+                ((open - low) / (.001 + high - low) > 0.6) and
+                (close > open)
+        )
 
     def is_hanging_man2(self, open, high, low, close):
-        return (((high - low > 3 * (open - close)) and
+        return (
+                ((high - low) > 3 * (open - close)) and
                  ((close - low) / (.001 + high - low) >= 0.75) and
-                 ((open - low) / (.001 + high - low) >= 0.75))
-            # and
-            # prev_high < open and
-            # b_prev_high < open
-            )
+                 ((open - low) / (.001 + high - low) >= 0.75) and
+                (open > close)
+        )
+
+
 
     # def is_hanging_man(open, high, low, close):
     #     return (((high - low >  * (open - close)) and
@@ -233,11 +237,11 @@ def load_common_params(file):
 
 def main():
     global common_params
-    common_params = load_common_params('common_params.json')
+    common_params = load_common_params('common_params_debug.json')
     if common_params is None: exit(1)
     futures = load_futures_list()
     print(f'Coins is loaded ({len(futures)}.)')
-    manager = QueueManager(symbols=futures, timeframes=['1h', '4h'])
+    manager = QueueManager(symbols=futures, timeframes=['1m', '5m'])
     manager.join()
 
 
