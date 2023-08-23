@@ -3,6 +3,6 @@
   "Secret_Key": "BKumF36wB6xjJau65zPTCRGIVU2Ak5VDr9XMQxCxaS73FYx0cn09WsbgDRIt43RT",
   "telegram_token": "5085987089:AAFOaNFSWusfA9hDI-b0UYIirrWRK3VvhAg",
   "telegram_channel_id": -1001782999630,
-  "timeframes": ["1m", "5m"],
+  "timeframes": ["1m"],
   "avg_volumes_file": "avg_volumes_debug.json"
 }

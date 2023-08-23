@@ -65,11 +65,14 @@ class QueueManager():
         total_range = high - low
 
         if body_range < total_range * 0.3:
-            if close > open and (close - low) / total_range > 0.6:
+            if open > close and ((close - low) / total_range > 0.6):  # and ((close - low) / total_range < 0.2):
                 signal = 'LONG'
-            elif open > close and (open - low) / total_range > 0.6:
-                signal = 'SHORT'
+        elif open > close and ((high - open) / total_range > 0.6):  # and ((high - open) / total_range < 0.2):
+            signal = 'SHORT'
         return signal
+
+
+
 
     def is_hummer(self, open_, high, low, close):
         '''
@@ -93,7 +96,7 @@ class QueueManager():
             open_ = open_ + open_ * 0.0001
         proportion = round((high - low) / abs(open_ - close), 2)
         if proportion > 2 and proportion <= 2.5:
-            return "1  2"
+            return "1 to 2"
         elif proportion > 2.5 and proportion <= 3:
             return "1 to 3"
         elif proportion > 3 and proportion <= 3.5:
@@ -135,6 +138,8 @@ class QueueManager():
             hummer = self.detect_hammer_patterns(open_, high, low, close)
             proportion = self.get_candle_proportion(open_, high, low, close)
             volume_ratio = self.get_volume_ratio(volume, timeframe, symbol)
+            if proportion > 50:
+                return ''
             if hummer != '':
                 signal = f'{symbol}:{timeframe}:{hummer}:{proportion}'
                 if volume_ratio is not None:
