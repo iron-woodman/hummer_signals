@@ -138,8 +138,6 @@ class QueueManager():
             hummer = self.detect_hammer_patterns(open_, high, low, close)
             proportion = self.get_candle_proportion(open_, high, low, close)
             volume_ratio = self.get_volume_ratio(volume, timeframe, symbol)
-            if proportion > 50:
-                return ''
             if hummer != '':
                 signal = f'{symbol}:{timeframe}:{hummer}:{proportion}'
                 if volume_ratio is not None:
@@ -184,7 +182,7 @@ class QueueManager():
 
         except Exception as e:
             print("on_message exception:", e)
-        # print(message)
+        print(message)
 
         if False:
             # in case your internal logic invalidates the items in the queue
