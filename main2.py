@@ -10,6 +10,7 @@ import datetime
 
 
 common_params = dict() # основные параметры скрипта
+avg_volumes = dict() # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
@@ -58,38 +59,17 @@ class QueueManager():
                 datetime.time.sleep(1)
                 attemts_count -= 1
 
-    def is_hummer2(self, open, high, low, close):
-        '''
-        check candle for hummer pattern
-        :param open:
-        :param high:
-        :param low:
-        :param close:
-        :return:
-        '''
-        return (
-                ((high - low) > 3 * (open - close)) and
-                ((close - low) / (.001 + high - low) > 0.6) and
-                ((open - low) / (.001 + high - low) > 0.6) and
-                (close > open)
-        )
+    def detect_hammer_patterns(self, open, high, low, close):
+        signal = ''
+        body_range = abs(open - close)
+        total_range = high - low
 
-    def is_hanging_man2(self, open, high, low, close):
-        return (
-                ((high - low) > 3 * (open - close)) and
-                 ((close - low) / (.001 + high - low) >= 0.75) and
-                 ((open - low) / (.001 + high - low) >= 0.75) and
-                (open > close)
-        )
-
-
-
-    # def is_hanging_man(open, high, low, close):
-    #     return (((high - low >  * (open - close)) and
-    #              ((close - low) / (.001 + high - low) >= 0.75) and
-    #              ((open - low) / (.001 + high - low) >= 0.75)) and
-    #             prev_high < open and
-    #             b_prev_high < open)
+        if body_range < total_range * 0.3:
+            if close > open and (close - low) / total_range > 0.6:
+                signal = 'LONG'
+            elif open > close and (open - low) / total_range > 0.6:
+                signal = 'SHORT'
+        return signal
 
     def is_hummer(self, open_, high, low, close):
         '''
@@ -110,55 +90,56 @@ class QueueManager():
 
     def get_candle_proportion(self, open_, high, low, close):
         if open_ == close:
-            open_ = open_ + 0.0001
-        proportion = round(abs(high - low) / abs(open_ - close), 2)
+            open_ = open_ + open_ * 0.0001
+        proportion = round((high - low) / abs(open_ - close), 2)
         if proportion > 2 and proportion <= 2.5:
-            return "1 per 2"
+            return "1  2"
         elif proportion > 2.5 and proportion <= 3:
-            return "1 per 3"
+            return "1 to 3"
         elif proportion > 3 and proportion <= 3.5:
-            return "1 per 3"
+            return "1 to 3"
         elif proportion > 3.5 and proportion <= 4:
-            return "1 per 4"
+            return "1 to 4"
         elif proportion > 4 and proportion <= 4.5:
-            return "1 per 4"
+            return "1 to 4"
         elif proportion > 4.5 and proportion <= 5:
-            return "1 per 5"
+            return "1 to 5"
         elif proportion > 5 and proportion <= 5.5:
-            return "1 per 5"
+            return "1 to 5"
         elif proportion > 5.5 and proportion <= 6:
-            return "1 per 6"
+            return "1 to 6"
         elif proportion > 6 and proportion <= 6.5:
-            return "1 per 6"
+            return "1 to 6"
         elif proportion > 6.5 and proportion <= 7:
-            return "1 per 7"
+            return "1 to 7"
         elif proportion > 7 and proportion <= 7.5:
-            return "1 per 7"
+            return "1 to 7"
         elif proportion > 7.5 and proportion <= 8:
-            return "1 per 8"
+            return "1 to 8"
         elif proportion > 8 and proportion <= 8.5:
-            return "1 per 8"
+            return "1 to 8"
         elif proportion > 8.5 and proportion <= 9:
-            return "1 per 9"
+            return "1 to 9"
         elif proportion > 9 and proportion <= 9.5:
-            return "1 per 9"
+            return "1 to 9"
         elif proportion > 9.5 and proportion <= 10:
-            return "1 per 10"
+            return "1 to 10"
         elif proportion > 10 and proportion <= 10.5:
-            return "1 per 10"
+            return "1 to 10"
         else:
-            return f"1 per {proportion}"
+            return f"1 to {proportion}"
 
     def check_bar_for_signal(self, symbol, open_, high, low, close, volume, timeframe, candle_time):
         signal = ''
         try:
-            hummer = self.is_hummer2(open_, high, low, close)
-            hanging_man = self.is_hanging_man2(open_, high, low, close)
+            hummer = self.detect_hammer_patterns(open_, high, low, close)
             proportion = self.get_candle_proportion(open_, high, low, close)
-            if hummer:
-                signal = f'{symbol}:{timeframe}:LONG:{proportion}'
-            elif hanging_man:
-                signal = f'{symbol}:{timeframe}:SHORT:{proportion}'
+            volume_ratio = self.get_volume_ratio(volume, timeframe, symbol)
+            if hummer != '':
+                signal = f'{symbol}:{timeframe}:{hummer}:{proportion}'
+                if volume_ratio is not None:
+                    signal += f'\nvolume: x {volume_ratio}'
+
         except Exception as e:
             print(e)
         return signal
@@ -189,6 +170,7 @@ class QueueManager():
                 candle_time = candle['t']
 
                 if is_candle_closed:
+                    signal = ''
                     signal = self.check_bar_for_signal(symbol, open_, high, low, close, volume, timeframe, candle_time)
                     if signal != '':
                         # print(signal)
@@ -214,6 +196,17 @@ class QueueManager():
     def join(self):
         self._twm.join()
 
+    def get_volume_ratio(self, volume, timeframe, symbol):
+        global avg_volumes
+        avg_volume = 0.0
+        ratio = 0.0
+        if symbol in avg_volumes:
+            if timeframe in avg_volumes[symbol]:
+                avg_volume = avg_volumes[symbol][timeframe]
+                ratio = round(volume / avg_volume, 1)
+                return ratio
+
+
 def load_futures_list():
     global common_params
     client = Client(common_params["API_Key"], common_params["Secret_Key"])
@@ -235,13 +228,27 @@ def load_common_params(file):
     return params
 
 
+def load_avg_volumes(file):
+    try:
+        with open(file, 'r', encoding='cp1251') as f:
+            avg_volumes = json.load(f)
+        print('avg volumes loaded')
+        return avg_volumes
+    except Exception as e:
+        print("load_avg_volume_params exception:", e)
+        return None
+
 def main():
     global common_params
+    global avg_volumes
     common_params = load_common_params('common_params.json')
     if common_params is None: exit(1)
     futures = load_futures_list()
+    if os.path.isfile(common_params['avg_volumes_file']) is True:  # файл средних объемов существует
+        avg_volumes = load_avg_volumes(common_params['avg_volumes_file'])
+
     print(f'Coins is loaded ({len(futures)}.)')
-    manager = QueueManager(symbols=futures, timeframes=['1h', '4h'])
+    manager = QueueManager(symbols=futures, timeframes=common_params['timeframes'])
     manager.join()
 
 
