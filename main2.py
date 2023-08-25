@@ -17,7 +17,7 @@ CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
 
-DEBUG = False # флаг переключения режима скритпа debug/release
+DEBUG = True # флаг переключения режима скритпа debug/release
 
 
 
@@ -45,7 +45,7 @@ class QueueManager():
 
         global common_params
 
-        print("*" * 30 + " " + signal)
+        print("*" * 30 + "\n" + signal)
         token = common_params["telegram_token"]
         url = "https://api.telegram.org/bot"
         channel_id = common_params["telegram_channel_id"]
@@ -193,7 +193,7 @@ class QueueManager():
 
         except Exception as e:
             print("on_message exception:", e)
-        print(message)
+        # print(message)
 
         if False:
             # in case your internal logic invalidates the items in the queue

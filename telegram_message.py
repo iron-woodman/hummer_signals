@@ -1,4 +1,4 @@
-
+## -*- coding: utf-8 -*-
 
 class TLGMessage:
     def __init__(self, pair, timeframe, direction, bar_rate, volume_rate=None):
