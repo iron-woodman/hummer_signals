@@ -8,11 +8,17 @@ import requests
 from binance import Client, ThreadedWebsocketManager
 import datetime
 
+from telegram_message import TLGMessage
+
 
 common_params = dict() # основные параметры скрипта
 avg_volumes = dict() # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
+
+
+DEBUG = False # флаг переключения режима скритпа debug/release
+
 
 
 class QueueManager():
@@ -50,7 +56,8 @@ class QueueManager():
         while (attemts_count > 0):
             r = requests.post(method, data={
                 "chat_id": channel_id,
-                "text": signal
+                "text": signal,
+                "parse_mode": "Markdown"
             })
             if r.status_code == 200:
                 return
@@ -135,13 +142,17 @@ class QueueManager():
     def check_bar_for_signal(self, symbol, open_, high, low, close, volume, timeframe, candle_time):
         signal = ''
         try:
-            hummer = self.detect_hammer_patterns(open_, high, low, close)
+            hummer_direction = self.detect_hammer_patterns(open_, high, low, close)
             proportion = self.get_candle_proportion(open_, high, low, close)
             volume_ratio = self.get_volume_ratio(volume, timeframe, symbol)
-            if hummer != '':
-                signal = f'{symbol}:{timeframe}:{hummer}:{proportion}'
-                if volume_ratio is not None:
-                    signal += f'\nvolume: x {volume_ratio}'
+            if hummer_direction != '':
+                tlg_message = TLGMessage(symbol,timeframe, hummer_direction, proportion, volume_ratio)
+                signal = tlg_message.generate_message()
+
+
+                # signal = f'{symbol}:{timeframe}:{hummer_direction}:{proportion}'
+                # if volume_ratio is not None:
+                #     signal += f'\nvolume: x {volume_ratio}'
 
         except Exception as e:
             print(e)
@@ -244,7 +255,11 @@ def load_avg_volumes(file):
 def main():
     global common_params
     global avg_volumes
-    common_params = load_common_params('common_params.json')
+    global DEBUG
+    if DEBUG:
+        common_params = load_common_params('common_params_debug.json')
+    else:
+        common_params = load_common_params('common_params.json')
     if common_params is None: exit(1)
     futures = load_futures_list()
     if os.path.isfile(common_params['avg_volumes_file']) is True:  # файл средних объемов существует
