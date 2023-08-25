@@ -12,16 +12,16 @@ class TLGMessage:
 
     def generate_message(self):
         try:
-            direction = "📈Long" if self.direction == "LONG" else "📉Short"
+            direction = "Long" if self.direction == "LONG" else "Short"
             message = (
-                f"📩{self.pair} \n"
-                f"⌛️{self.timeframe}\n"
-                f"{direction}\n"
-                f"📏 Size:{self.bar_rate}\n"
+                f"Pair: {self.pair} \n"
+                f"Timeframe: {self.timeframe}\n"
+                f"Direction: {direction}\n"
+                f"Size:{self.bar_rate}\n"
 
             )
             if self.volume_rate is not None:
-                message += f"📊Vol: x {self.volume_rate}"
+                message += f"Vol: x {self.volume_rate}"
 
             return message
         except Exception as e:
