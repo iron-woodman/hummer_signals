@@ -10,15 +10,12 @@ import datetime
 
 from telegram_message import TLGMessage
 
-
-common_params = dict() # основные параметры скрипта
-avg_volumes = dict() # средние объемы для разных ТФ
+common_params = dict()  # основные параметры скрипта
+avg_volumes = dict()  # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
-
-DEBUG = False # флаг переключения режима скритпа debug/release
-
+DEBUG = False  # флаг переключения режима скритпа debug/release
 
 
 class QueueManager():
@@ -34,7 +31,8 @@ class QueueManager():
             for timeframe in timeframes:
                 self._streams.append(f"{symbol.replace('/', '').lower()}@kline_{timeframe}")
 
-        self.send_signal(f'Bot started. Coins count: {len(symbols)}. TF:{timeframes}', datetime.datetime.now().timestamp())
+        self.send_signal(f'Bot started. Coins count: {len(symbols)}. TF:{timeframes}',
+                         datetime.datetime.now().timestamp())
 
         self._twm.start()
         self._log.warning(f"Start listening to {len(self._streams)} streams")
@@ -66,20 +64,32 @@ class QueueManager():
                 datetime.time.sleep(1)
                 attemts_count -= 1
 
-    def detect_hammer_patterns(self, open, high, low, close):
+    def detect_hammer_patterns(self, open, high, low, close, timeframe):
         signal = ''
         body_range = abs(open - close)
         total_range = high - low
+        shadow_limit = 0.01  # 1 procent by default
+        if timeframe == '4h':
+            shadow_limit = 0.02
+        elif timeframe == "1d":
+            shadow_limit = 0.04
 
-        if body_range < total_range * 0.3:
-            if open > close and ((close - low) / total_range > 0.6):  # and ((close - low) / total_range < 0.2):
+        if body_range * 3 < total_range:
+            # red hummers
+            if open > close and ((close - low) / total_range > 0.6) and (
+                    close - low > shadow_limit * open):  # and ((close - low) / total_range < 0.2):
                 signal = 'LONG'
-            elif open > close and ((high - open) / total_range > 0.6):  # and ((high - open) / total_range < 0.2):
+            elif open > close and ((high - open) / total_range > 0.6) and (
+                    high - open > shadow_limit * open):  # and ((high - open) / total_range < 0.2):
                 signal = 'SHORT'
+            # green hummers
+            elif open < close and ((open - low) / total_range > 0.6) and (open - low > shadow_limit * open):
+                signal = 'LONG'
+            elif open < close and ((high - close) / total_range > 0.6) and (
+                    high - close > shadow_limit * open):  # and ((high - open) / total_range < 0.2):
+                signal = 'SHORT'
+
         return signal
-
-
-
 
     def is_hummer(self, open_, high, low, close):
         '''
@@ -146,9 +156,8 @@ class QueueManager():
             proportion = self.get_candle_proportion(open_, high, low, close)
             volume_ratio = self.get_volume_ratio(volume, timeframe, symbol)
             if hummer_direction != '':
-                tlg_message = TLGMessage(symbol,timeframe, hummer_direction, proportion, volume_ratio)
+                tlg_message = TLGMessage(symbol, timeframe, hummer_direction, proportion, volume_ratio)
                 signal = tlg_message.generate_message()
-
 
                 # signal = f'{symbol}:{timeframe}:{hummer_direction}:{proportion}'
                 # if volume_ratio is not None:
@@ -251,6 +260,7 @@ def load_avg_volumes(file):
     except Exception as e:
         print("load_avg_volume_params exception:", e)
         return None
+
 
 def main():
     global common_params
