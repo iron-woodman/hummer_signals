@@ -15,7 +15,7 @@ avg_volumes = dict()  # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
-DEBUG = False  # флаг переключения режима скритпа debug/release
+DEBUG = True  # флаг переключения режима скритпа debug/release
 
 
 class QueueManager():
@@ -73,6 +73,8 @@ class QueueManager():
             shadow_limit = 0.02
         elif timeframe == "1d":
             shadow_limit = 0.04
+        elif timeframe == "1m":
+            shadow_limit = 0.003
 
         if body_range * 3 < total_range:
             # red hummers
@@ -152,7 +154,7 @@ class QueueManager():
     def check_bar_for_signal(self, symbol, open_, high, low, close, volume, timeframe, candle_time):
         signal = ''
         try:
-            hummer_direction = self.detect_hammer_patterns(open_, high, low, close)
+            hummer_direction = self.detect_hammer_patterns(open_, high, low, close, timeframe)
             proportion = self.get_candle_proportion(open_, high, low, close)
             volume_ratio = self.get_volume_ratio(volume, timeframe, symbol)
             if hummer_direction != '':
