@@ -16,7 +16,7 @@ avg_volumes = dict()  # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
-DEBUG = True  # флаг переключения режима скритпа debug/release
+DEBUG = False  # флаг переключения режима скритпа debug/release
 
 
 class QueueManager():
