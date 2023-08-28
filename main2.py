@@ -9,18 +9,19 @@ from binance import Client, ThreadedWebsocketManager
 import datetime
 
 from telegram_message import TLGMessage
+import logger as custom_logging
 
 common_params = dict()  # основные параметры скрипта
 avg_volumes = dict()  # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
-DEBUG = False  # флаг переключения режима скритпа debug/release
+DEBUG = True  # флаг переключения режима скритпа debug/release
 
 
 class QueueManager():
     _log = logging.getLogger(__name__)
-    _log.setLevel(logging.WARNING)
+    _log.setLevel(logging.INFO)
     _log.addHandler(CH)
 
     def __init__(self, symbols: list = [], timeframes: list = []) -> None:
@@ -31,19 +32,19 @@ class QueueManager():
             for timeframe in timeframes:
                 self._streams.append(f"{symbol.replace('/', '').lower()}@kline_{timeframe}")
 
-        self.send_signal(f'Bot started. Coins count: {len(symbols)}. TF:{timeframes}',
-                         datetime.datetime.now().timestamp())
+        self.send_signal(f'Bot started. Coins count: {len(symbols)}. TF:{timeframes}')
 
         self._twm.start()
         self._log.warning(f"Start listening to {len(self._streams)} streams")
         self._listener: str = self._twm.start_multiplex_socket(callback=self._handle_socket_message,
                                                                streams=self._streams)
 
-    def send_signal(self, signal, candle_time):
+    def send_signal(self, signal):
 
         global common_params
 
         print("*" * 30 + "\n" + signal)
+        self._log.info(signal)
         token = common_params["telegram_token"]
         url = "https://api.telegram.org/bot"
         channel_id = common_params["telegram_channel_id"]
@@ -61,6 +62,7 @@ class QueueManager():
                 return
             elif r.status_code != 200:
                 print(f'Telegram send signal error ({signal}).')
+                self._log.error(f'Telegram send signal error:\n ({signal}). \nAttempts count={attemts_count}')
                 datetime.time.sleep(1)
                 attemts_count -= 1
 
@@ -77,44 +79,42 @@ class QueueManager():
         elif timeframe == "1m":
             shadow_limit = 0.003
 
-        if body_range * 3 < total_range:
+        try:
 
-            if open > close:
-                # red hummers
-                if ((close - low) / total_range > 0.6) and (
-                        close - low > shadow_limit * open) and ((close-low)/(high-open) >= 3):  # and ((close - low) / total_range < 0.2):
-                    signal = 'LONG'
-                elif ((high - open) / total_range > 0.6) and (
-                        high - open > shadow_limit * open) and ((high-open)/(close-low) >= 3):  # and ((high - open) / total_range < 0.2):
-                    signal = 'SHORT'
+            if body_range * 3 < total_range:
 
-            else:
-                # green hummers
-                if ((open - low) / total_range > 0.6) and (open - low > shadow_limit * open)\
-                        and ((open-low)/(high-close) >=3):
-                    signal = 'LONG'
-                elif ((high - close) / total_range > 0.6) and (
-                        high - close > shadow_limit * open) and ((high-close)/(open-low) >=3):  # and ((high - open) / total_range < 0.2):
-                    signal = 'SHORT'
+                # ---------float zero division error correction
+                if high == open:
+                    high = open + 0.001 * open
+                elif close == low:
+                    low = close - close * 0.001
+                elif high == close:
+                    high = close + close * 0.001
+                elif open == low:
+                    low = open - open * 0.001
+                # ---------------------------------------------
 
+                if open > close:
+                    # red hummers
+                    if ((close - low) / total_range > 0.6) and (
+                            close - low > shadow_limit * open) and ((close-low)/(high-open) >= 3):  # and ((close - low) / total_range < 0.2):
+                        signal = 'LONG'
+                    elif ((high - open) / total_range > 0.6) and (
+                            high - open > shadow_limit * open) and ((high-open)/(close-low) >= 3):  # and ((high - open) / total_range < 0.2):
+                        signal = 'SHORT'
+
+                else:
+                    # green hummers
+                    if ((open - low) / total_range > 0.6) and (open - low > shadow_limit * open)\
+                            and ((open-low)/(high-close) >=3):
+                        signal = 'LONG'
+                    elif ((high - close) / total_range > 0.6) and (
+                            high - close > shadow_limit * open) and ((high-close)/(open-low) >=3):  # and ((high - open) / total_range < 0.2):
+                        signal = 'SHORT'
+        except Exception as e:
+            self._log.error(f"detect_hammer_patterns error: {e}")
         return signal
 
-    def is_hummer(self, open_, high, low, close):
-        '''
-        check candle for hummer pattern
-        ex.: https://www.youtube.com/watch?v=NdlEpNl9oYA
-        :param open_:
-        :param high:
-        :param low:
-        :param close:
-        :return:
-        '''
-        if high - low > 3 * (open_ - close) and (close - low) / (0.001 + high - low) > 0.6 and \
-                (open_ - low) / (0.001 + high - low) > 0.6 and \
-                abs(close - open_) > 0.1 * (high - low):
-            return True
-        else:
-            return False
 
     def get_candle_proportion(self, open_, high, low, close):
         if open_ == close:
@@ -173,6 +173,7 @@ class QueueManager():
 
         except Exception as e:
             print(e)
+            self._log.error(f"check_bar_for_signal error: {e}.")
         return signal
 
     def _handle_socket_message(self, message):
@@ -210,6 +211,7 @@ class QueueManager():
 
         except Exception as e:
             print("on_message exception:", e)
+            self._log.error("on_message exception:", e)
         # print(message)
 
         if False:
@@ -236,22 +238,28 @@ class QueueManager():
                 avg_volume = avg_volumes[symbol][timeframe]
                 ratio = round(volume / avg_volume, 1)
                 return ratio
+        else:
+            self._log.warning(f"Avg volume not exists for {symbol}:{timeframe}.")
 
 
 def load_futures_list():
     global common_params
-    client = Client(common_params["API_Key"], common_params["Secret_Key"])
-    futures_info_list = client.futures_exchange_info()
-    futures = []
-    for item in futures_info_list['symbols']:
-        if item['status'] != 'TRADING': continue
-        futures.append(item['pair'])
+    try:
+        client = Client(common_params["API_Key"], common_params["Secret_Key"])
+        futures_info_list = client.futures_exchange_info()
+        futures = []
+        for item in futures_info_list['symbols']:
+            if item['status'] != 'TRADING': continue
+            futures.append(item['pair'])
+    except Exception as e:
+        custom_logging.add_log(f"load_futures_luist exception: {e}", level=logging.ERROR)
     return futures
 
 
 def load_common_params(file):
     if os.path.exists(file) is False:
         print(f'File {file} not exists.')
+        custom_logging.add_log(f'File {file} not exists.', level=logging.WARNING)
         return None
 
     with open(file, 'r') as f:
@@ -266,7 +274,8 @@ def load_avg_volumes(file):
         print('avg volumes loaded')
         return avg_volumes
     except Exception as e:
-        print("load_avg_volume_params exception:", e)
+        print("Load_avg_volume_params exception:", e)
+        custom_logging.add_log(f"Load_avg_volume_params exception: {e}", level=logging.ERROR)
         return None
 
 
@@ -274,15 +283,21 @@ def main():
     global common_params
     global avg_volumes
     global DEBUG
+    custom_logging.add_log(f"\n*******************************************************************************")
+    custom_logging.add_log(f"Bot started.")
+
     if DEBUG:
         common_params = load_common_params('common_params_debug.json')
+        custom_logging.add_log(f"Params loaded from 'common_params_debug.json'")
     else:
         common_params = load_common_params('common_params.json')
+        custom_logging.add_log(f"Params loaded from 'common_params.json'")
+
     if common_params is None: exit(1)
     futures = load_futures_list()
     if os.path.isfile(common_params['avg_volumes_file']) is True:  # файл средних объемов существует
         avg_volumes = load_avg_volumes(common_params['avg_volumes_file'])
-
+    custom_logging.add_log(f'Coins is loaded ({len(futures)}.)')
     print(f'Coins is loaded ({len(futures)}.)')
     manager = QueueManager(symbols=futures, timeframes=common_params['timeframes'])
     manager.join()
