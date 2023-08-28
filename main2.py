@@ -15,7 +15,7 @@ avg_volumes = dict()  # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
-DEBUG = True  # флаг переключения режима скритпа debug/release
+DEBUG = False  # флаг переключения режима скритпа debug/release
 
 
 class QueueManager():
@@ -71,9 +71,9 @@ class QueueManager():
         shadow_limit = 0.01  # 1 procent by default
         shadow_rate = 1
         if timeframe == '4h':
-            shadow_limit = 0.02
+            shadow_limit = 0.01
         elif timeframe == "1d":
-            shadow_limit = 0.04
+            shadow_limit = 0.02
         elif timeframe == "1m":
             shadow_limit = 0.003
 
