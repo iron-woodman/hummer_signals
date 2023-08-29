@@ -206,7 +206,7 @@ class QueueManager():
                     signal = self.check_bar_for_signal(symbol, open_, high, low, close, volume, timeframe, candle_time)
                     if signal != '':
                         # print(signal)
-                        self.send_signal(signal, candle_time)
+                        self.send_signal(signal)
 
 
         except Exception as e:
