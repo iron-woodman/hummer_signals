@@ -44,7 +44,7 @@ class QueueManager():
         global common_params
 
         print("*" * 30 + "\n" + signal)
-        self._log.info(signal)
+        self._log.info("\n" + signal)
         token = common_params["telegram_token"]
         url = "https://api.telegram.org/bot"
         channel_id = common_params["telegram_channel_id"]
@@ -157,7 +157,7 @@ class QueueManager():
         else:
             return f"1 to {proportion}"
 
-    def check_bar_for_signal(self, symbol, open_, high, low, close, volume, timeframe, candle_time):
+    def check_bar_for_signal(self, symbol, open_, high, low, close, volume, timeframe):
         signal = ''
         try:
             hummer_direction = self.detect_hammer_patterns(open_, high, low, close, timeframe)
@@ -166,7 +166,9 @@ class QueueManager():
             if hummer_direction != '':
                 tlg_message = TLGMessage(symbol, timeframe, hummer_direction, proportion, volume_ratio)
                 signal = tlg_message.generate_message()
-
+                self._log.info(
+                    f'{symbol}:{hummer_direction}:' +
+                    f'(open={open_}, high={high}, low={low}, close={close}, timeframe="{timeframe}")')
                 # signal = f'{symbol}:{timeframe}:{hummer_direction}:{proportion}'
                 # if volume_ratio is not None:
                 #     signal += f'\nvolume: x {volume_ratio}'
@@ -203,7 +205,7 @@ class QueueManager():
 
                 if is_candle_closed:
                     signal = ''
-                    signal = self.check_bar_for_signal(symbol, open_, high, low, close, volume, timeframe, candle_time)
+                    signal = self.check_bar_for_signal(symbol, open_, high, low, close, volume, timeframe)
                     if signal != '':
                         # print(signal)
                         self.send_signal(signal)
