@@ -16,7 +16,7 @@ avg_volumes = dict()  # средние объемы для разных ТФ
 CH = logging.StreamHandler()
 CH.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 
-DEBUG = False  # флаг переключения режима скритпа debug/release
+DEBUG = True  # флаг переключения режима скритпа debug/release
 
 
 class QueueManager():
@@ -61,7 +61,7 @@ class QueueManager():
             if r.status_code == 200:
                 return
             elif r.status_code != 200:
-                print(f'Telegram send signal error ({signal}).')
+                print(f'Telegram send signal error ({signal}). Status code={r.status_code}. Text="{r.text}".')
                 self._log.error(f'Telegram send signal error:\n ({signal}). \nAttempts count={attemts_count}')
                 datetime.time.sleep(1)
                 attemts_count -= 1
@@ -294,7 +294,6 @@ def main():
     else:
         common_params = load_common_params('common_params.json')
         custom_logging.add_log(f"Params loaded from 'common_params.json'")
-
     if common_params is None: exit(1)
     futures = load_futures_list()
     if os.path.isfile(common_params['avg_volumes_file']) is True:  # файл средних объемов существует

@@ -120,6 +120,10 @@ def detect_hammer_patterns(open, high, low, close, timeframe):
     return signal
 
 
-
-signal = detect_hammer_patterns2(open=0.03915 ,high=0.03947 ,low=0.03858, close=0.03886, timeframe="4h")
+print(float(228.27))
+print(float(227.12))
+signal = detect_hammer_patterns2(open=0.1724 ,high=0.1748 ,low=0.1713, close=0.1735, timeframe="4h")
 print(signal)
+signal = detect_hammer_patterns2(open=0.1725 ,high=0.1777 ,low=0.1715, close=0.1737, timeframe="4h")
+print(signal)
+

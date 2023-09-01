@@ -42,59 +42,20 @@ def load_history_bars(task):
 
             if timeframe == '1m':
                 st_time = "1 day ago UTC"
-                # delta = timedelta(minutes=bars_count)
-            elif timeframe == '3m':
-                st_time = "3 day ago UTC"
-                # delta = timedelta(minutes=bars_count * 3)
             elif timeframe == '5m':
                 st_time = "5 day ago UTC"
-                # delta = timedelta(minutes=bars_count * 5)
-            elif timeframe == '15m':
-                st_time = "15 day ago UTC"
-                # st_time = str(int(datetime.now().timestamp() * 1000))
-                # delta = timedelta(minutes=bars_count * 15)
-            elif timeframe == '30m':
-                st_time = "30 day ago UTC"
-                # delta = timedelta(minutes=bars_count * 30)
             elif timeframe == '1h':
-                st_time = "60 day ago UTC"
+                st_time = "2 day ago UTC"
                 # delta = timedelta(hours=bars_count)
-            elif timeframe == '2h':
-                st_time = "120 day ago UTC"
-                # delta = timedelta(hours=bars_count * 2)
             elif timeframe == '4h':
-                st_time = "90 day ago UTC"
+                st_time = "4 day ago UTC"
                 # delta = timedelta(hours=bars_count * 4)
-            elif timeframe == '6h':
-                st_time = "120 day ago UTC"
-                # delta = timedelta(hours=bars_count * 6)
-            elif timeframe == '8h':
-                st_time = "120 day ago UTC"
-                # delta = timedelta(hours=bars_count * 8)
-            elif timeframe == '12h':
-                st_time = "185 day ago UTC"
-                # delta = timedelta(hours=bars_count * 12)
             elif timeframe == '1d':
-                st_time = "365 day ago UTC"
-                # delta = timedelta(days=bars_count)
-            # elif timeframe == '3d':
-            #     st_time = "2 year ago UTC"
-            #     # delta = timedelta(days=bars_count * 3)
-            # elif timeframe == '1w':
-            #     st_time = "2 year ago UTC"
-            #     # delta = timedelta(weeks=bars_count)
-            # elif timeframe == '1M':
-            #     st_time = "3 year ago UTC"
-            #     # delta = timedelta(days=bars_count*31)
+                st_time = "20 day ago UTC"
             else:
                 print('неизвестный таймфрейм:', timeframe)
                 continue
 
-            # рассчитываем время загрузки баров (start_str)
-            # st_time = (datetime.now() - delta).date()
-            # st_time = st_time.ctime()
-            # st_time = st_time.replace('00:00:00', '')
-            # st_time = '"12 Jan, 2022"'
             bars = []
             try:
                 bars = client.get_historical_klines(pair, timeframe, st_time)
